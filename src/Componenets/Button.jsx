@@ -12,7 +12,10 @@ const SButton = styled.button`
     font-size: 18px;
     padding: ${(props) => (props.padding ? props.padding : "10px 15px")};
     border-radius: 5px;
-    cursor: ${(props) => (props.disabled ? " not-allowed" : "pointer")};
+    cursor: ${(props) => (props.disabled ? "default" : "pointer")};
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `;
 
 function Button({ children, ...props }) {

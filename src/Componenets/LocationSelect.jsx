@@ -9,20 +9,15 @@ const Select = styled.div`
     width: 70%;
     font-size: 16px;
     background-color: ${(props) => props.theme.inputColor};
-    transition: background-color 0.2s ease-in-out;
-    &:hover {
-        background-color: ${(props) => props.theme.hoverColor};
-    }
     color: ${(props) => props.theme.textColor};
     cursor: pointer;
     border: 1px solid
-        ${(props) => (props.errors ? props.theme.colors.red : props.theme.textColor)};
+        ${(props) => (props.errors ? props.theme.colors.red : props.theme.borderColor)};
     padding: 15px 10px;
-    margin-bottom: ${(props) => (props.errors ? "5px" : "10px")};
-    border-radius: 10px;
+    border-radius: 5px;
     & span {
         color: gray;
-        font-weight: 100;
+        font-weight: 400;
     }
 `;
 const SelectItem = styled.div`

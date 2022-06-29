@@ -1,19 +1,19 @@
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { getProApi } from "../api";
+import React from "react";
+import styled from "styled-components";
+import { useLocation } from "react-router-dom";
+import ProDetail from "../Componenets/ProDetail";
+
+const Wrapper = styled.div`
+    margin: 20px 0;
+`;
 
 function Pro() {
-    const getPro = async () => {
-        await getProApi();
-    };
-    useEffect(() => {
-        console.log("1");
-        getPro();
-    }, []);
+    const location = useLocation();
+
     return (
-        <>
-            <Link to="/pro/register">프로필 등록</Link>
-        </>
+        <Wrapper>
+            <ProDetail data={location?.state?.data} />
+        </Wrapper>
     );
 }
 

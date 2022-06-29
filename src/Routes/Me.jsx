@@ -54,18 +54,18 @@ const Btn = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 10px;
+    border-radius: 5px;
     font-size: 18px;
     cursor: pointer;
     background-color: ${(props) => props.theme.inputColor};
-    border: 1px solid ${(props) => props.theme.textColor};
+    border: 1px solid ${(props) => props.theme.borderColor};
     &:last-child {
         margin-top: 15px;
     }
 `;
 
 function Profile() {
-    const { userInfo } = useRecoilValue(isAuthAtom);
+    const { user } = useRecoilValue(isAuthAtom);
     const [posts, setPosts] = useRecoilState(mePostsState);
     const [isEdit, setIsEdit] = useState(false);
     const loading = useRecoilValue(mePostsLoading);
@@ -90,8 +90,8 @@ function Profile() {
     return (
         <UserWrapper>
             <UserProfile>
-                <Avatar src={userInfo.avatar} />
-                <Nickname>{userInfo.nickname}</Nickname>
+                <Avatar src={user.avatar} />
+                <Nickname>{user.nickname}</Nickname>
                 <Btn onClick={() => setShow(!show)}>프로필 수정 🔏</Btn>
                 <Btn onClick={isEdit ? () => setIsEdit(false) : handleShowPosts}>
                     {loading ? (

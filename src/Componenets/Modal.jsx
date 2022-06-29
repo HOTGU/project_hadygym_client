@@ -40,19 +40,23 @@ const ModalWrapper = styled.div`
     z-index: 99;
 `;
 const ModalTitle = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
 `;
 const ModalItem = styled.div`
     position: relative;
-    max-width: 800px;
+    width: fit-content;
     height: auto;
     padding: 30px 20px;
     border-radius: 10px;
     z-index: 99;
+    margin: 0 10px;
     box-shadow: ${(props) => props.theme.boxShadow};
-    background-color: ${(props) => props.theme.inputColor};
+    background-color: ${(props) => props.theme.bgColor};
     animation: ${modalAni} 0.3s ease-in;
 `;
 

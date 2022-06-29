@@ -34,7 +34,7 @@ function RouteGuard({ shouldGuard, title }) {
             }
             setConfirm(false);
         }
-    }, [isLeave, history]);
+    }, [isLeave, history, location]);
 
     return (
         <>

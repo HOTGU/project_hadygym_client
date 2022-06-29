@@ -34,7 +34,6 @@ const TagWrapper = styled.div`
     margin: 0;
 `;
 const Tag = styled.div`
-    border-radius: 50px;
     font-size: 14px;
     font-weight: 400;
     margin-right: 5px;
@@ -96,7 +95,7 @@ const ModalBtn = styled.div`
 `;
 
 function PostCard({ post, isEdit }) {
-    const user = useRecoilValue(isAuthAtom);
+    const { user } = useRecoilValue(isAuthAtom);
     const [modal, setModal] = useState(false);
     const [confirm, setConfirm] = useState(false);
     const [currentId, setCurrentId] = useState("");
@@ -127,7 +126,7 @@ function PostCard({ post, isEdit }) {
 
     return (
         <CardWrapper>
-            {post.creator._id === user.userInfo.id && isEdit && (
+            {post.creator._id === user._id && isEdit && (
                 <Imoji onClick={() => setModal(!modal)} />
             )}
             {modal && isEdit && (

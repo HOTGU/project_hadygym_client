@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Redirect } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import styled from "styled-components";
 
-import Button from "../Componenets/Button";
 import { sendEmailApi, signinApi, signupApi } from "../api";
 import { isAuthAtom } from "../atoms/isAuthAtom";
 import { loginHandler } from "../utils/auth";
 import { useLocation } from "react-router";
+import { verifyEmailAtom } from "../atoms/sendEmail";
 import SvgWelcome from "../Componenets/Images/Welcome";
 import Loader from "../Componenets/Loader";
+import Button from "../Componenets/Button";
 
 const AuthContainer = styled.div`
     max-width: 320px;
@@ -64,10 +65,9 @@ const ChangeBtn = styled.span`
 `;
 const SInput = styled.input.attrs({ autoComplete: "off" })`
     width: 100%;
-    font-family: "GMarket";
     font-size: 16px;
     background-color: ${(props) =>
-        props.isVerify ? props.theme.hoverColor : props.theme.bgColor};
+        props.isVerify ? props.theme.hoverColor : props.theme.inputColor};
     color: ${(props) => (props.isVerify ? props.theme.svgColor : props.theme.textColor)};
     border: 1px solid
         ${(props) => (props.errors ? props.theme.colors.red : props.theme.textColor)};
@@ -92,18 +92,19 @@ const SText = styled.span`
     }
 `;
 
+const INIT_VERIFY_OBJ = {
+    loading: false,
+    success: false,
+    email: null,
+    number: null,
+};
+
 function Auth() {
     const location = useLocation();
-    const [isAuth, setIsAuth] = useRecoilState(isAuthAtom);
     const [isSignup, setIsSignup] = useState(false);
-    const [disabled, setDisabled] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [verify, setVerify] = useState({
-        email: "",
-        number: "",
-        ok: false,
-    });
     const [inputNumber, setInputNumber] = useState();
+    const [{ user, loading }, setIsAuth] = useRecoilState(isAuthAtom);
+    const [verify, setVerify] = useRecoilState(verifyEmailAtom);
 
     const {
         register,
@@ -111,95 +112,76 @@ function Auth() {
         formState: { errors },
         watch,
         setValue,
-        setError,
     } = useForm();
 
     const from = location.state && location.state.from;
 
-    if (isAuth.loggedIn) {
+    useEffect(() => {
+        setVerify(INIT_VERIFY_OBJ);
+    }, [isSignup, setVerify]);
+
+    if (user) {
         return <Redirect to={from || "/"} />;
     }
 
     const handleVerifyEmail = async () => {
         const email = watch("email");
-        if (verify.ok) {
+        if (verify.success) {
             toast("이미 인증했습니다", { icon: "🎈" });
             return;
         }
+        setVerify({ ...verify, loading: true });
         try {
-            setLoading(true);
-            setDisabled(true);
             const res = await sendEmailApi({ email });
-            if (res.status === 200) {
-                setVerify({
-                    ok: false,
-                    number: res.data,
-                    email,
-                });
-            }
+            setVerify({
+                ...verify,
+                loading: false,
+                number: res.data,
+                email,
+            });
         } catch (error) {
             toast.error(error.response.data.message);
+            setVerify(INIT_VERIFY_OBJ);
         }
-        setLoading(false);
-        setDisabled(false);
     };
 
     const handleInput = (e) => {
-        if (e.target.value.length > 6 || verify.ok) {
+        if (e.target.value.length > 6 || verify.success) {
             return e.preventDefault();
         }
         if (parseInt(e.target.value) === verify.number) {
             toast.success("이메일 인증 성공");
-            setVerify({ ...verify, ok: true });
+            setVerify({ ...verify, success: true });
         }
         setInputNumber(e.target.value);
     };
 
     const onValid = async (data) => {
-        try {
-            setDisabled(true);
-            if (isSignup) {
-                if (!verify.ok) {
-                    toast.error("이메일 인증을 해주세요");
-                    setDisabled(false);
-                    return;
-                }
-                const singupPromise = signupApi(data);
-                toast.promise(singupPromise, {
-                    loading: "회원가입 중...",
-                    success: "회원가입 성공",
-                    error: "회원가입 실패",
-                });
-                const response = await singupPromise;
-                if (response.status === 200) {
-                    setIsSignup(false);
-                }
+        setIsAuth({ user: null, loading: true });
+        if (isSignup) {
+            if (!verify.ok) {
+                toast.error("이메일 인증을 해주세요");
+                return;
             }
-            if (!isSignup) {
-                const signinPromise = signinApi(data);
-                toast.promise(signinPromise, {
-                    loading: "로그인 중...",
-                    success: "로그인 성공",
-                    error: "로그인 실패",
-                });
-                const response = await signinPromise;
-                if (response?.status === 200) {
-                    const {
-                        data: { userInfo, accessToken, refreshToken },
-                    } = response;
-                    loginHandler(userInfo, accessToken, refreshToken);
-                    setIsAuth({
-                        loggedIn: true,
-                        userInfo: { ...userInfo },
-                    });
-                }
+            try {
+                await signupApi(data);
+                setIsAuth({ loading: false, user: null });
+                setIsSignup(false);
+                setVerify({ loading: false, email: "", number: "", success: false });
+            } catch (error) {
+                toast.error(error.response.data.message);
             }
-            setDisabled(false);
-        } catch (error) {
-            const errorLocation = error.response.data.errorLocation;
-            const errorMessage = error.response.data.message;
-            setDisabled(false);
-            setError(errorLocation, { message: errorMessage });
+        }
+        if (!isSignup) {
+            try {
+                const response = await signinApi(data);
+                setIsAuth({ loading: false, user: response.data.user });
+                loginHandler(response.data);
+                toast.success("핸디짐에 오신 걸 환영합니다");
+            } catch (error) {
+                setIsAuth({ loading: false, user: null });
+                toast.error(error.response.data.message);
+            }
         }
     };
 
@@ -230,7 +212,7 @@ function Auth() {
                     {isSignup && verify.email && (
                         <ChangeBtn
                             onClick={() => {
-                                setVerify({ ok: false, email: "", number: "" });
+                                setVerify(INIT_VERIFY_OBJ);
                                 setInputNumber();
                             }}
                         >
@@ -241,18 +223,18 @@ function Auth() {
                 {isSignup && (
                     <VerifyWrapper>
                         <VerifyBtn
-                            onClick={disabled ? () => {} : handleVerifyEmail}
-                            isVerify={verify.ok}
+                            onClick={verify.loading ? () => {} : handleVerifyEmail}
+                            isVerify={verify.success}
                         >
-                            {loading ? (
+                            {verify.loading ? (
                                 <Loader isCenter={false} height="14px" width="14px" />
                             ) : verify.number ? (
-                                verify.ok ? (
+                                verify.success ? (
                                     "인증완료"
                                 ) : (
                                     "다시 보내기"
                                 )
-                            ) : verify.ok ? (
+                            ) : verify.success ? (
                                 "인증완료"
                             ) : (
                                 "이메일 인증"
@@ -268,7 +250,7 @@ function Auth() {
                                 }}
                                 onChange={handleInput}
                                 placeholder="인증번호 ex)123456"
-                                isVerify={verify.ok}
+                                isVerify={verify.success}
                             />
                         )}
                     </VerifyWrapper>
@@ -325,8 +307,15 @@ function Auth() {
                         )}
                     </>
                 )}
-                <Button disabled={disabled}>
-                    {isSignup ? "회원가입👋" : "로그인👋"}
+
+                <Button disabled={loading}>
+                    {loading ? (
+                        <Loader isCenter={false} height="24px" width="24px" />
+                    ) : isSignup ? (
+                        "회원가입"
+                    ) : (
+                        "로그인"
+                    )}
                 </Button>
                 <SText>
                     {isSignup ? (

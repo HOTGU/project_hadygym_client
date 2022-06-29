@@ -6,15 +6,15 @@ import { useRecoilValue } from "recoil";
 import { isAuthAtom } from "../atoms/isAuthAtom";
 
 function OnlyUserRoute({ children }) {
-    const { loggedIn } = useRecoilValue(isAuthAtom);
+    const { user } = useRecoilValue(isAuthAtom);
 
     let location = useLocation();
 
     useEffect(() => {
-        if (!loggedIn) toast("로그인해야 이용가능합니다", { icon: "🚀" });
-    }, [loggedIn]);
+        if (!user) toast("로그인해야 이용가능합니다", { icon: "🚀" });
+    }, [user]);
 
-    if (!loggedIn) return <Redirect to="/auth" state={{ from: location }} />;
+    if (!user) return <Redirect to={{ pathname: "/auth", state: { from: location } }} />;
 
     return children;
 }

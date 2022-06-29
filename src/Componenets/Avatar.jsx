@@ -19,7 +19,15 @@ const SAvatar = styled.img`
 
 function Avatar({ ...props }) {
     if (!props.src) return <NoUserAvatar {...props} />;
-    return <SAvatar {...props} src={props.src}></SAvatar>;
+
+    return (
+        <SAvatar
+            {...props}
+            src={
+                typeof props.src === "string" ? props.src : URL.createObjectURL(props.src)
+            }
+        ></SAvatar>
+    );
 }
 
 export default Avatar;

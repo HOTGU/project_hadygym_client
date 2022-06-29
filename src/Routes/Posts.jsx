@@ -29,7 +29,7 @@ const RefreshBtn = styled.div`
     position: fixed;
     bottom: 30px;
     right: 30px;
-    border: 1px solid ${(props) => props.theme.textColor};
+    border: 1px solid ${(props) => props.theme.borderColor};
     border-radius: 50%;
     padding: 10px;
     cursor: pointer;
@@ -92,10 +92,10 @@ function Posts() {
     });
 
     useEffect(() => {
-        if (number === 1) {
+        if (number === 0) {
             handleRefresh();
         }
-    }, [categoryParams, locationParams]);
+    }, [categoryParams, locationParams, handleRefresh, number]);
 
     if (loading) return <Loader width="50px" height="50px" />;
 
@@ -107,11 +107,13 @@ function Posts() {
                     locationParams ? locationParams : "전체"
                 } (으)로 검색한 결과`}</div>
             )}
+
             <PostContainer>
                 {posts.map((post, index) => (
                     <PostCard key={index} post={post} />
                 ))}
             </PostContainer>
+
             <ReadMoreBtn
                 isLoading={isLoading}
                 isFetch={isFetch}

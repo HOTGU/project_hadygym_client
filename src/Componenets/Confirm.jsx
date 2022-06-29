@@ -1,6 +1,10 @@
 import React from "react";
+import { useSetRecoilState } from "recoil";
 import styled, { keyframes } from "styled-components";
+
 import { Times } from "@styled-icons/fa-solid";
+import { isLogoutAtom } from "../atoms/isLogout";
+import useBlockPath from "../hooks/useBlockPath";
 
 const modalAni = keyframes`
     0% {
@@ -55,8 +59,15 @@ const ConfirmItem = styled.div`
     margin-top: 100px;
 `;
 const ConfirmTitle = styled.div`
-    font-size: 20px;
+    font-size: 18px;
+    width: 70%;
 `;
+const ConfirmInfo = styled.div`
+    font-size: 14px;
+    margin-top: 5px;
+    color: ${(props) => props.theme.colors.red};
+`;
+
 const BtnContainer = styled.div`
     margin-top: auto;
     margin-left: auto;
@@ -74,15 +85,29 @@ const Btn = styled.div`
     }
 `;
 
-function Confirm({ setShow, title, onConfirm }) {
+function Confirm({ setShow, title, info, onConfirm }) {
+    const setIsLogout = useSetRecoilState(isLogoutAtom);
+
+    const isBlockPath = useBlockPath();
+
+    const handleNoClick = () => {
+        setShow(false);
+        setIsLogout(false);
+    };
+
     return (
         <>
             <ConfirmWrapper>
                 <ConfirmItem>
-                    <CancelEmoji onClick={() => setShow(false)} />
+                    <CancelEmoji onClick={handleNoClick} />
                     <ConfirmTitle>{title}</ConfirmTitle>
+                    <ConfirmInfo>
+                        {/* {(currentProRegister || currentPostUpload) &&
+                            "💡 작성중인 글은 저장되지 않습니다"} */}
+                        {isBlockPath && "💡 작성중인 글은 저장되지 않습니다"}
+                    </ConfirmInfo>
                     <BtnContainer>
-                        <Btn onClick={() => setShow(false)}>아니요</Btn>
+                        <Btn onClick={handleNoClick}>아니요</Btn>
                         <Btn onClick={onConfirm}>네</Btn>
                     </BtnContainer>
                 </ConfirmItem>

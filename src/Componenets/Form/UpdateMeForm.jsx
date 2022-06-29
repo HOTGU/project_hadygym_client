@@ -4,13 +4,13 @@ import { useForm } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { Camera } from "@styled-icons/fa-solid";
 import toast from "react-hot-toast";
-import cookie from "react-cookies";
 
 import Button from "../Button";
 import { isAuthAtom } from "../../atoms/isAuthAtom";
 import Avatar from "../Avatar";
 import { updateMe } from "../../api";
-import { postsState } from "../../atoms/postsAtom";
+import { setCookie } from "../../utils/cookie";
+import Loader from "../Loader";
 
 const SForm = styled.form`
     display: flex;
@@ -35,13 +35,10 @@ const CameraEmoji = styled(Camera)`
 `;
 const SInput = styled.input.attrs({ autoComplete: "off" })`
     width: 100%;
-    font-family: "GMarket";
     font-size: 16px;
     background-color: ${(props) => props.theme.inputColor};
     transition: background-color 0.2s ease-in-out;
-    &:hover {
-        background-color: ${(props) => props.theme.hoverColor};
-    }
+
     color: ${(props) => props.theme.textColor};
     border: 1px solid
         ${(props) => (props.errors ? props.theme.colors.red : props.theme.textColor)};
@@ -57,16 +54,16 @@ const ErrorText = styled.div`
 `;
 
 function UpdateMeForm({ show, setShow }) {
-    const [{ userInfo }, setIsAuth] = useRecoilState(isAuthAtom);
-    const [posts, setPosts] = useRecoilState(postsState);
-
+    const [isAuth, setIsAuth] = useRecoilState(isAuthAtom);
     const imgRef = useRef();
+
     const {
         register,
         handleSubmit,
         setValue,
         formState: { errors },
         watch,
+        reset,
     } = useForm();
 
     register("avatar");
@@ -74,49 +71,24 @@ function UpdateMeForm({ show, setShow }) {
     const file = watch("avatar");
 
     useEffect(() => {
-        setValue("nickname", userInfo?.nickname);
-        setValue("avatar", "");
-    }, [userInfo, show, setValue]);
+        reset({ nickname: isAuth.user?.nickname, avatar: "" });
+    }, [isAuth?.user, reset]);
 
     const onValid = async (data) => {
         const formData = new FormData();
         formData.append("avatar", data.avatar);
         formData.append("nickname", data.nickname);
-        const promise = updateMe(formData).then((response) => {
-            cookie.save("user", {
-                nickname: response.data.user.nickname,
-                avatar: response.data.user.avatar,
-            });
-            setIsAuth({
-                loggedIn: true,
-                userInfo: {
-                    nickname: response.data.user.nickname,
-                    avatar: response.data.user.avatar,
-                },
-            });
-            const updated = posts.map((post) => {
-                if (post.creator._id !== response.data.user.id) {
-                    return post;
-                }
-                if (post.creator._id === response.data.user.id) {
-                    return {
-                        ...post,
-                        creator: {
-                            ...post.creator,
-                            nickname: response.data.user.nickname,
-                            avatar: response.data.user.avatar,
-                        },
-                    };
-                }
-            });
-            setPosts(updated);
-            setShow(!show);
-        });
-        toast.promise(promise, {
-            loading: "업데이트 중",
-            success: "업데이트 완료",
-            error: "업데이트 실패",
-        });
+        setIsAuth({ loading: true, user: { ...isAuth.user } });
+        try {
+            const response = await updateMe(formData);
+            setCookie("user", { ...response.data });
+            setIsAuth({ loading: false, user: { ...response.data } });
+            toast.success("프로필 수정 완료");
+        } catch (error) {
+            toast.error(error.response.data.message);
+            setIsAuth({ loading: false, user: { ...isAuth.user } });
+        }
+        setShow(!show);
     };
 
     return (
@@ -133,7 +105,7 @@ function UpdateMeForm({ show, setShow }) {
                         <Avatar
                             onClick={() => imgRef.current.click()}
                             click={true}
-                            src={userInfo?.avatar}
+                            src={isAuth?.user?.avatar}
                         />
                     )}
                     <CameraEmoji />
@@ -160,7 +132,9 @@ function UpdateMeForm({ show, setShow }) {
                 {errors.nickname && errors.nickname.message && (
                     <ErrorText>{errors.nickname.message}</ErrorText>
                 )}
-                <Button>수정완료</Button>
+                <Button disabled={isAuth.loading}>
+                    {isAuth.loading ? <Loader isCenter={false} /> : "수정완료"}
+                </Button>
             </SForm>
         </>
     );

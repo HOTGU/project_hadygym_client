@@ -1,12 +1,10 @@
 import { atom } from "recoil";
-import cookie from "react-cookies";
+import { getCookie } from "../utils/cookie";
 
 export const isAuthAtom = atom({
     key: "auth",
     default: {
-        loggedIn: Boolean(cookie.load("user")),
-        userInfo: {
-            ...cookie.load("user"),
-        },
+        loading: false,
+        user: getCookie("user") || null,
     },
 });

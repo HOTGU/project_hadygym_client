@@ -18,6 +18,15 @@ export const GlobalStyles = createGlobalStyle`
     input,button {
         outline: none;
         border: none;
+        
+    }
+    input[type='number'] {
+    -moz-appearance:textfield;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
     }
     body {
         font-family: 'Noto Sans KR', sans-serif;
@@ -32,33 +41,45 @@ export const GlobalStyles = createGlobalStyle`
 `;
 
 export const darkTheme = {
-    textColor: "#ffffff",
+    textColor: "#dcdde1",
     svgColor: "#d2dae2",
     bgColor: "rgba(47, 54, 64, 1.0)", // British
     inputColor: "#1e272e",
     hoverColor: "black",
     accentColor: "#10ac84", // Canadian "DARK MOUNTAIN MEADOW"
-    darkBtnColor: "#ff5e57",
-    boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
-    modalColor: "rgba(47, 54, 64, 0.8)",
+    borderColor: "#7f8c8d",
+    boxShadow: "rgba(50, 50, 50, 0.48) 0px 3px 8px",
+    modalColor: "rgba(3, 5, 4, 0.9)",
+    navbarHeight: "100px",
+    messageColor: "rgba(0, 0, 0, 0.24)",
     colors: {
         white: "white", // British "LYNX WHITE"
         red: "#e84118", // British "NASTURICIAN FLOWER"
+        gray: "#dfe4ea",
+        yellow: "rgba(255, 168, 1,1.0)",
+        blue: "#3498db",
+        black: "#1e272e",
     },
 };
 
 export const lightTheme = {
     textColor: "#2f3640",
     svgColor: "#485460",
-    bgColor: "#f5f6fa", // British
+    bgColor: "#ededed", // British
     inputColor: "#ffffff",
-    hoverColor: "#ecf0f1",
+    hoverColor: "#bdbdbd",
     accentColor: "#10ac84", // Canadian "DARK MOUNTAIN MEADOW"
-    darkBtnColor: "#ffc048",
-    boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
+    borderColor: "#7f8c8d",
+    boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
     modalColor: "rgba(47, 54, 64, 0.8)",
+    navbarHeight: "100px",
+    messageColor: "rgba(180, 180, 180, 0.24)",
     colors: {
-        white: "#f5f6fa",
+        white: "white",
         red: "#e84118",
+        gray: "#dfe4ea",
+        yellow: "rgba(255, 168, 1,1.0)",
+        blue: "#3498db",
+        black: "#1e272e",
     },
 };

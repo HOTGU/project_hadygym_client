@@ -1,5 +1,5 @@
 import { atom, selector, selectorFamily } from "recoil";
-import { getPostById } from "../api";
+import { getPostById, fetchPostsApi } from "../api";
 
 export const postsState = atom({
     key: "postsState",
@@ -13,7 +13,7 @@ export const fetchPostsLoadLimit = atom({
 
 export const fetchPostsLoadNumber = atom({
     key: "fetchPostsLoadNumber",
-    default: 1,
+    default: 0,
 });
 
 export const fetchPostsIsLoading = atom({
@@ -48,8 +48,15 @@ export const resetPostsSelector = selector({
     key: "resetPosts",
     get: ({ get }) => {},
     set: ({ set }) => {
-        set(postsState, []);
-        set(fetchPostsLoadNumber, 1);
+        set(fetchPostsLoadNumber, 0);
         set(fetchPostsIsFetch, true);
+    },
+});
+
+export const getFourPosts = selector({
+    key: "getFourPostsQuery",
+    get: async () => {
+        const response = await fetchPostsApi(1, 4);
+        return response.data;
     },
 });

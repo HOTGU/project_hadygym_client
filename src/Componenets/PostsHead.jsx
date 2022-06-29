@@ -2,13 +2,16 @@ import React, { useRef, useState, useEffect } from "react";
 import styled from "styled-components";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Search, PlusCircle, Times, ChevronCircleUp } from "@styled-icons/fa-solid";
+import { ChevronCircleUp } from "@styled-icons/fa-solid";
 import { useForm } from "react-hook-form";
 
 import Leaf from "./Images/Leaf";
 import CategorySelect from "./CategorySelect";
 import LocationSelect from "./LocationSelect";
 import Button from "./Button";
+import { useRecoilCallback } from "recoil";
+import { fetchPostsLoadNumber } from "../atoms/postsAtom";
+import LinkBtn from "./LinkBtn";
 
 const HeadContainer = styled.div`
     position: sticky;
@@ -29,17 +32,14 @@ const ItemWrapper = styled.div`
     align-items: center;
 `;
 const ItemText = styled.div`
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
-    text-decoration: underline;
 `;
 const SearchBtn = styled.div`
-    display: flex;
-    align-items: center;
     padding: 10px 15px;
     border-radius: 5px;
     color: ${(props) => props.theme.textColor};
-    border: 1px solid ${(props) => props.theme.textColor};
+    border: 1px solid ${(props) => props.theme.borderColor};
     margin-right: 5px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -47,19 +47,7 @@ const SearchBtn = styled.div`
         background-color: ${(props) => props.theme.hoverColor};
     }
 `;
-const SearchImoji = styled(Search)`
-    width: 16px;
-    height: 16px;
-`;
-const PlusImoji = styled(PlusCircle)`
-    width: 18px;
-    height: 18px;
-    margin-right: 3px;
-`;
-const XMarkImoji = styled(Times)`
-    width: 18px;
-    height: 18px;
-`;
+
 const ArrowUpImoji = styled(ChevronCircleUp)`
     position: absolute;
     bottom: -16px;
@@ -76,15 +64,7 @@ const ArrowUpImoji = styled(ChevronCircleUp)`
         transform: scale(1.05);
     }
 `;
-const LinkBtn = styled(Link)`
-    padding: 10px 15px;
-    background-color: ${(props) => props.theme.accentColor};
-    border: 1px solid ${(props) => props.theme.accentColor};
-    color: ${(props) => props.theme.colors.white};
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-`;
+
 const Form = styled.form`
     overflow: hidden;
     width: 100%;
@@ -130,6 +110,10 @@ function PostsHead() {
     const category = watch("category");
     const location = watch("location");
 
+    const resetPosts = useRecoilCallback(({ set }) => async () => {
+        set(fetchPostsLoadNumber, 0);
+    });
+
     const blockEnter = (e) => {
         if (e.keyCode === 13 && e.target.type !== "textarea") {
             e.preventDefault();
@@ -151,6 +135,7 @@ function PostsHead() {
         if (!data.category && !data.location) {
             return toast.error("동네와 운동 둘 중 하나를 선택해주세요");
         }
+        resetPosts();
         history.push(`/posts?category=${category}&location=${location}`);
     };
 
@@ -165,11 +150,10 @@ function PostsHead() {
                 </ItemWrapper>
                 <ItemWrapper>
                     <SearchBtn onClick={() => setIsSearch(!isSearch)}>
-                        {isSearch ? <XMarkImoji /> : <SearchImoji />}
+                        {isSearch ? "❌" : "🔎"}
                     </SearchBtn>
                     <LinkBtn to="/posts/upload">
-                        <PlusImoji />
-                        <ItemText>글쓰기</ItemText>
+                        <ItemText>📝글쓰기</ItemText>
                     </LinkBtn>
                 </ItemWrapper>
             </ItemContainer>

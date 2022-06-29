@@ -9,20 +9,16 @@ const Select = styled.div`
     width: 30%;
     font-size: 16px;
     background-color: ${(props) => props.theme.inputColor};
-    transition: background-color 0.2s ease-in-out;
-    &:hover {
-        background-color: ${(props) => props.theme.hoverColor};
-    }
+
     color: ${(props) => props.theme.textColor};
     cursor: pointer;
     border: 1px solid
-        ${(props) => (props.errors ? props.theme.colors.red : props.theme.textColor)};
+        ${(props) => (props.error ? props.theme.colors.red : props.theme.borderColor)};
     padding: 15px 10px;
-    margin-bottom: ${(props) => (props.errors ? "5px" : "10px")};
-    border-radius: 10px;
+    border-radius: 5px;
+    font-weight: 400;
     & span {
         color: gray;
-        font-weight: 100;
     }
 `;
 const SelectItem = styled.div`
@@ -44,6 +40,7 @@ const SCategory = styled.div`
     padding: 12px 16px;
     font-size: 16px;
     border: 1px solid ${(props) => props.theme.textColor};
+    background-color: ${(props) => props.theme.inputColor};
     border-radius: 10px;
     cursor: pointer;
     &:hover {
@@ -71,13 +68,13 @@ function CategorySelect({ error, category, setValue }) {
 
     return (
         <>
-            <Select onClick={() => setShow(!show)} className={error && "error"}>
+            <Select onClick={() => setShow(!show)} error={error}>
                 <SelectItem>
-                    {category ? category : <span>희망운동</span>}
+                    {category ? category : <span>운동</span>}
                     <AngleIcon />
                 </SelectItem>
             </Select>
-            <Modal show={show} setShow={setShow} title="희망운동">
+            <Modal show={show} setShow={setShow} title="운동">
                 <CategoryContainer>
                     {categoryArr.map((c) => (
                         <SCategory

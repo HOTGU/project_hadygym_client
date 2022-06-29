@@ -3,12 +3,15 @@ import styled from "styled-components";
 import Moment from "react-moment";
 import { useLocation, useHistory, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useRecoilValue } from "recoil";
 
+import { isAuthAtom } from "../atoms/isAuthAtom";
 import Avatar from "../Componenets/Avatar";
 import Modal from "../Componenets/Modal";
 import Button from "../Componenets/Button";
-import { getPostById } from "../api";
+import { createConversationApi, getPostById } from "../api";
 import Loader from "../Componenets/Loader";
+import toast from "react-hot-toast";
 
 const Wrapper = styled.div`
     margin: 20px auto;
@@ -78,8 +81,7 @@ const Creator = styled.div`
     }
 `;
 const SForm = styled.form`
-    width: auto;
-    min-width: 250px;
+    width: 400px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -106,17 +108,15 @@ const SForm = styled.form`
 `;
 
 function Post() {
+    const { state } = useLocation();
+    const history = useHistory();
+    const { user } = useRecoilValue(isAuthAtom);
     const [show, setShow] = useState(false);
     const { id } = useParams();
     const [post, setPost] = useState();
-    const { state } = useLocation();
-    const history = useHistory();
     const [loading, setLoading] = useState(false);
+    const [sending, setSending] = useState(false);
     const { register, handleSubmit } = useForm();
-
-    const onValid = (data) => {
-        setShow(!show);
-    };
 
     const getPost = useCallback(
         async (id) => {
@@ -127,21 +127,32 @@ function Post() {
                 setLoading(false);
             } catch {
                 history.push("/");
+                setLoading(false);
             }
         },
         [history]
     );
 
-    // const getPost = async (id) => {
-    //     try {
-    //         setLoading(true);
-    //         const { data } = await getPostById(id);
-    //         setPost(data);
-    //         setLoading(false);
-    //     } catch {
-    //         navigate("/");
-    //     }
-    // };
+    const onValid = async (data) => {
+        setShow(!show);
+        setSending(true);
+        try {
+            const response = await createConversationApi({
+                senderId: user._id,
+                receiverId: post?.creator?._id,
+                text: data.text,
+            });
+            toast.success("쪽지 보내기 성공");
+            console.log(response.data);
+            setSending(false);
+        } catch (error) {
+            console.log(error);
+            toast.error(error.response.data.message);
+            setSending(false);
+
+            // toast.error("쪽지 보내기 실패");
+        }
+    };
 
     useEffect(() => {
         if (state?.post) {
@@ -170,11 +181,19 @@ function Post() {
                     <Avatar src={post?.creator?.avatar} width="60px" height="60px" />
                     <span>{post?.creator?.nickname}</span>
                 </Creator>
-                {true && <button onClick={() => setShow(!show)}>✉ 쪽지 보내기</button>}
+                {user.isPro && (
+                    <button onClick={() => setShow(!show)} disabled={sending}>
+                        {sending ? <Loader isCenter={false} /> : "✉ 쪽지 보내기"}
+                    </button>
+                )}
             </CreatorWrapper>
-            <Modal show={show} setShow={setShow} title={`쪽지보내기`}>
+            <Modal
+                show={show}
+                setShow={setShow}
+                title={`${post?.creator?.nickname}님에게 쪽지보내기`}
+            >
                 <SForm onSubmit={handleSubmit(onValid)}>
-                    <textarea {...register("message")} />
+                    <textarea {...register("text")} />
                     <Button>보내기</Button>
                 </SForm>
             </Modal>

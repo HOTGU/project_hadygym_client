@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Img from "../Images/uploadImg.svg";
 import PostForm from "../Componenets/Form/PostForm";
 
-const PostContainer = styled.div`
+const Container = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -14,7 +14,7 @@ const PostContainer = styled.div`
         margin-top: 20px;
     }
 `;
-const PostItem = styled.div`
+const Item = styled.div`
     width: 40%;
     flex-basis: auto;
     display: flex;
@@ -26,7 +26,7 @@ const PostItem = styled.div`
         padding: 0;
     }
 `;
-const PostImg = styled.img`
+const ItemImg = styled.img`
     width: 100%;
     max-width: 550px;
     height: auto;
@@ -39,15 +39,15 @@ const Title = styled.div`
 
 function PostFormWrapper({ isUpdate, post, title }) {
     return (
-        <PostContainer>
-            <PostItem>
-                <PostImg src={Img} />
-            </PostItem>
-            <PostItem>
+        <Container>
+            <Item>
+                <ItemImg src={Img} />
+            </Item>
+            <Item>
                 <Title>{title}</Title>
                 <PostForm isUpdate={isUpdate} post={post} />
-            </PostItem>
-        </PostContainer>
+            </Item>
+        </Container>
     );
 }
 

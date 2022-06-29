@@ -1,9 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Link, NavLink, useHistory } from "react-router-dom";
-import { useRecoilState, useResetRecoilState } from "recoil";
+import { useRecoilState, useResetRecoilState, useSetRecoilState } from "recoil";
 import styled from "styled-components";
 import toast from "react-hot-toast";
-import { Sun, Moon, Bars } from "@styled-icons/fa-solid";
+import { Bars } from "@styled-icons/fa-solid";
 
 import { isDarkAtom } from "../atoms/isDarkAtom";
 import { isAuthAtom } from "../atoms/isAuthAtom";
@@ -14,33 +14,37 @@ import Avatar from "./Avatar";
 import { resetPostsSelector } from "../atoms/postsAtom";
 import { resetMePostsSelector } from "../atoms/mePostsAtom";
 import Confirm from "./Confirm";
+import { isLogoutAtom } from "../atoms/isLogout";
+import { myProDataTrigger } from "../atoms/isProAtom";
 
 const NavbarContainer = styled.header`
-    border-bottom: 1px solid ${(props) => props.theme.svgColor};
+    border-bottom: 1px solid ${(props) => props.theme.borderColor};
 `;
 const SNavbar = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 100px;
+    height: ${(props) => props.theme.navbarHeight};
     margin: 0 auto;
 `;
 const TitleWrapper = styled.div`
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 `;
+
 const DarkToggleBtn = styled.button`
-    position: absolute;
-    top: 50%;
-    right: -50px;
-    margin-top: -15px;
-    height: 30px;
-    width: 30px;
+    height: 36px;
+    width: 36px;
     border-radius: 50%;
     background-color: ${(props) => props.theme.textColor};
     color: ${(props) => props.theme.darkBtnColor};
     border: none;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `;
 
 const TitleLink = styled(NavLink)`
@@ -77,7 +81,7 @@ const NavItem = styled(Link)`
 
 const UserModalWrapper = styled.div`
     position: relative;
-    border: 1px solid ${(props) => props.theme.textColor};
+    border: 1px solid ${(props) => props.theme.borderColor};
     border-radius: 20px;
     padding: 4px 8px;
     z-index: 99;
@@ -119,9 +123,11 @@ const ModalItem = styled.div`
 function Navbar() {
     const history = useHistory();
     const [isDark, setIsDark] = useRecoilState(isDarkAtom);
-    const [isAuth, setIsAuth] = useRecoilState(isAuthAtom);
+    const [{ user }, setIsAuth] = useRecoilState(isAuthAtom);
     const resetPosts = useResetRecoilState(resetPostsSelector);
     const resetMePosts = useResetRecoilState(resetMePostsSelector);
+    const setIsLogout = useSetRecoilState(isLogoutAtom);
+    const setMyProData = useSetRecoilState(myProDataTrigger);
     const [modal, setModal] = useState(false);
     const [confirm, setConfirm] = useState(false);
     const modalRef = useRef();
@@ -136,25 +142,23 @@ function Navbar() {
     });
 
     const handleLogout = async (e) => {
-        const logoutPromise = logoutApi()
-            .catch((err) => {
-                console.log(err);
-            })
-            .then(() => {
-                logoutHandler();
-                history.push("/");
-                setModal(false);
-                setConfirm(false);
-                setIsAuth({ loggedIn: false, userInfo: {} });
-                resetPosts();
-                resetMePosts();
-            });
-
-        toast.promise(logoutPromise, {
-            loading: "로그아웃 중...",
-            success: "다음에 또 봐요",
-            error: "로그아웃 실패",
-        });
+        e.preventDefault();
+        setModal(false);
+        setConfirm(false);
+        setIsLogout(false);
+        history.push("/");
+        try {
+            await logoutApi();
+            logoutHandler();
+            setIsAuth({ user: null, loading: false });
+            // window.location.reload();
+            setMyProData(Date.now());
+            resetPosts();
+            resetMePosts();
+            toast.success("핸디짐에 또 오세요");
+        } catch (error) {
+            toast.error("뭔가 문제가 생겼습니다. 새로고침해서 다시 시도하세요.");
+        }
     };
 
     return (
@@ -165,23 +169,31 @@ function Navbar() {
                         <h1>Handy GYM</h1>
                         <h1>핸디짐</h1>
                     </TitleLink>
+
                     <DarkToggleBtn onClick={toggleDark}>
-                        {isDark ? <Sun /> : <Moon />}
+                        {isDark ? "🌞" : "🌛"}
                     </DarkToggleBtn>
                 </TitleWrapper>
                 <NavWrapper>
-                    {isAuth?.loggedIn ? (
+                    {user ? (
                         <>
+                            {/* {location.pathname.includes("/pro") ? (
+                                <NavItem to="/" fontSize="14px">
+                                    일반모드전환
+                                </NavItem>
+                            ) : (
+                            )} */}
                             <NavItem to="/pro" fontSize="14px">
-                                운동프로되기
+                                프로등록하기
                             </NavItem>
+
                             <UserModalWrapper onClick={() => setModal(!modal)}>
                                 <Bar />
                                 <Avatar
                                     width="30px"
                                     height="30px"
                                     click={true}
-                                    src={isAuth.userInfo.avatar}
+                                    src={user.avatar}
                                 />
 
                                 {modal && (
@@ -189,10 +201,14 @@ function Navbar() {
                                         <Link to="/me" onClick={() => setModal(false)}>
                                             <ModalItem>내 프로필</ModalItem>
                                         </Link>
+                                        <Link to="/messenger">
+                                            <ModalItem>쪽지함</ModalItem>
+                                        </Link>
                                         <ModalItem
                                             onClick={() => {
                                                 setModal(false);
                                                 setConfirm(true);
+                                                setIsLogout(true);
                                             }}
                                         >
                                             로그아웃
@@ -209,9 +225,11 @@ function Navbar() {
                             )}
                         </>
                     ) : (
-                        <NavItem to="/auth" fontSize="14px">
-                            로그인
-                        </NavItem>
+                        <>
+                            <NavItem to="/auth" fontSize="14px">
+                                로그인
+                            </NavItem>
+                        </>
                     )}
                 </NavWrapper>
             </SNavbar>

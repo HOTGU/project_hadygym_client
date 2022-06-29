@@ -9,6 +9,8 @@ const SButton = styled(Link)`
     font-size: ${(props) => props.fontSize || "20px"};
     font-weight: 700;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
 `;
 
 function LinkBtn({ children, ...props }) {

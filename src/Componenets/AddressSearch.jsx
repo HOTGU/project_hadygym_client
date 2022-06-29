@@ -21,14 +21,14 @@ const SearchBar = styled.div`
     width: 100%;
     height: 50px;
     border: 1px solid ${(props) => props.theme.textColor};
-    padding: 10px;
+    background-color: ${(props) => props.theme.inputColor};
+    padding: 0 10px;
 `;
 const SInput = styled.input.attrs({ autoComplete: "off", autoFocus: true })`
     height: 100%;
     width: 100%;
     font-weight: 700;
     z-index: -1;
-    background-color: ${(props) => props.theme.inputColor};
     outline: none;
     color: ${(props) => props.theme.textColor};
     border: none;
@@ -54,12 +54,13 @@ const Result = styled.ul`
     border-right: 1px solid ${(props) => props.theme.textColor};
     border-left: 1px solid ${(props) => props.theme.textColor};
     border-bottom: 1px solid ${(props) => props.theme.textColor};
+    background-color: ${(props) => props.theme.inputColor};
     max-height: 300px;
     overflow: auto;
     li {
         font-size: 16px;
         cursor: pointer;
-        padding: 15px 5px;
+        padding: 15px 10px;
         &:hover {
             background-color: ${(props) => props.theme.hoverColor};
         }

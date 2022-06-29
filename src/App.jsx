@@ -1,9 +1,8 @@
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { useRecoilValue } from "recoil";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { Toaster } from "react-hot-toast";
-import cookie from "react-cookies";
 
 import { isDarkAtom } from "./atoms/isDarkAtom";
 import { GlobalStyles, lightTheme, darkTheme } from "./styled";
@@ -14,21 +13,17 @@ import Me from "./Routes/Me";
 import Posts from "./Routes/Posts";
 import Post from "./Routes/Post";
 import OnlyUserRoute from "./Componenets/OnlyUserRoute";
-import { callRefreshToken } from "./utils/auth";
 import Loader from "./Componenets/Loader";
 import PostUpdate from "./Routes/PostUpdate";
 import PostUpload from "./Routes/PostUpload";
-import Pro from "./Routes/Pro";
+import ProMain from "./Routes/ProMain";
 import ProRegister from "./Routes/ProRegister";
+import Pro from "./Routes/Pro";
+import ProUpdate from "./Routes/ProUpdate";
+import Messenger from "./Routes/Messenger";
 
 function App() {
     const isDark = useRecoilValue(isDarkAtom);
-
-    useEffect(() => {
-        if (Boolean(cookie.load("refreshToken"))) {
-            callRefreshToken();
-        }
-    }, []);
 
     return (
         <BrowserRouter>
@@ -38,6 +33,15 @@ function App() {
                 <Switch>
                     <Route exact path="/" render={() => <Home />} />
                     <Route path="/auth" render={() => <Auth />} />
+                    <Route
+                        exact
+                        path="/messenger"
+                        render={() => (
+                            <OnlyUserRoute>
+                                <Messenger />
+                            </OnlyUserRoute>
+                        )}
+                    />
                     <Route
                         exact
                         path="/posts"
@@ -90,7 +94,6 @@ function App() {
                             </OnlyUserRoute>
                         )}
                     />
-
                     <Route
                         exact
                         path="/me"
@@ -105,7 +108,7 @@ function App() {
                         path="/pro"
                         render={() => (
                             <OnlyUserRoute>
-                                <Pro />
+                                <ProMain />
                             </OnlyUserRoute>
                         )}
                     />
@@ -118,6 +121,25 @@ function App() {
                             </OnlyUserRoute>
                         )}
                     />
+
+                    <Route
+                        exact
+                        path="/pro/:id"
+                        render={() => (
+                            <OnlyUserRoute>
+                                <Pro />
+                            </OnlyUserRoute>
+                        )}
+                    ></Route>
+                    <Route
+                        exact
+                        path="/pro/:id/update"
+                        render={() => (
+                            <OnlyUserRoute>
+                                <ProUpdate />
+                            </OnlyUserRoute>
+                        )}
+                    ></Route>
                 </Switch>
                 <Toaster />
             </ThemeProvider>
